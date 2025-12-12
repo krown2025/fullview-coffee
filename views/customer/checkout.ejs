@@ -1,0 +1,301 @@
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center my-4">
+        <h1 class="mb-0">Checkout</h1>
+        <a href="/" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Menu
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">Order Items</div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Qty</th>
+                                <th>Price</th>
+                                <th>Total</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="cart-table-body"></tbody>
+                    </table>
+
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="input-group mb-3">
+                                <input type="text" class="form-control" id="promoCode" placeholder="Promo Code">
+                                <button class="btn btn-outline-secondary" type="button"
+                                    id="applyPromoBtn">Apply</button>
+                            </div>
+                            <div id="promoMessage" class="form-text mb-2"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal</span>
+                                <span id="cart-subtotal">0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2 text-success">
+                                <span>Discount</span>
+                                <span>- <span id="cart-discount">0.00</span></span>
+                            </div>
+                            <div class="d-flex justify-content-between fw-bold fs-5">
+                                <span>Total</span>
+                                <span><span id="cart-total">0.00</span> SAR</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">Customer Details & Payment</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" id="customer_name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Phone</label>
+                        <input type="text" id="customer_phone" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Order Type</label>
+                        <select class="form-select" id="order-type" onchange="toggleCarFields()" required>
+                            <option value="dine_in">Dine In</option>
+                            <option value="car_pickup">Car Pickup</option>
+                        </select>
+                    </div>
+
+                    <div id="dine-in-fields">
+                        <div class="mb-3">
+                            <label class="form-label">Table Number</label>
+                            <input type="number" id="table_no" class="form-control">
+                        </div>
+                    </div>
+
+                    <div id="car-fields" style="display: none;">
+                        <div class="mb-3">
+                            <label class="form-label">Car Type</label>
+                            <input type="text" id="car_type" class="form-control" placeholder="e.g. Toyota Camry">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Car Color</label>
+                            <input type="text" id="car_color" class="form-control" placeholder="e.g. White">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Plate Number</label>
+                            <input type="text" id="car_plate" class="form-control" placeholder="e.g. ABC 1234">
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Moyasar Payment Form -->
+                    <div class="mysr-form"></div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/cart.js"></script>
+<script>
+    function toggleCarFields() {
+        const type = document.getElementById('order-type').value;
+        if (type === 'car_pickup') {
+            document.getElementById('car-fields').style.display = 'block';
+            document.getElementById('dine-in-fields').style.display = 'none';
+        } else {
+            document.getElementById('car-fields').style.display = 'none';
+            document.getElementById('dine-in-fields').style.display = 'block';
+        }
+    }
+
+    // Global variables
+    let currentOrderData = null;
+
+    // Initialize Moyasar Form
+    function initializeMoyasarForm() {
+        // Check if Moyasar is loaded
+        if (typeof Moyasar === 'undefined') {
+            console.error('Moyasar library not loaded!');
+            document.querySelector('.mysr-form').innerHTML = '<div class="alert alert-danger">Payment system not loaded. Please refresh the page.</div>';
+            return;
+        }
+
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        if (cart.length === 0) {
+            document.querySelector('.mysr-form').innerHTML = '<div class="alert alert-warning">Your cart is empty. Please add items to proceed.</div>';
+            return;
+        }
+
+        // Calculate total
+        let total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+        const totalEl = document.getElementById('cart-total');
+        if (totalEl && totalEl.innerText) {
+            const displayedTotal = parseFloat(totalEl.innerText);
+            if (displayedTotal > 0) {
+                total = displayedTotal;
+            }
+        }
+
+        if (total <= 0) {
+            document.querySelector('.mysr-form').innerHTML = '<div class="alert alert-danger">Invalid cart total.</div>';
+            return;
+        }
+
+        const amountInHalalas = Math.round(total * 100);
+
+        console.log('Initializing Moyasar...');
+        console.log('Amount:', amountInHalalas, 'halalas');
+        console.log('Publishable Key:', '<%= moyasarPublishableKey %>');
+
+        // Build metadata
+        const customerName = document.getElementById('customer_name').value || 'Guest';
+        const customerPhone = document.getElementById('customer_phone').value || '';
+        const orderType = document.getElementById('order-type').value;
+
+        const metadata = {
+            branch_id: '<%= branch.id %>',
+            customer_name: customerName,
+            customer_phone: customerPhone,
+            order_type: orderType,
+            cart_items: JSON.stringify(cart.map(item => ({
+                product_id: item.id,
+                quantity: item.quantity,
+                price: item.price,
+                options: item.options
+            })))
+        };
+
+        if (orderType === 'dine_in') {
+            metadata.table_number = document.getElementById('table_no').value;
+        } else {
+            metadata.car_type = document.getElementById('car_type').value;
+            metadata.car_color = document.getElementById('car_color').value;
+            metadata.car_plate = document.getElementById('car_plate').value;
+        }
+
+        try {
+            Moyasar.init({
+                element: '.mysr-form',
+                amount: amountInHalalas,
+                currency: 'SAR',
+                description: 'Coffee Order - <%= branch.name %>',
+                publishable_api_key: '<%= moyasarPublishableKey %>',
+                callback_url: window.location.origin + '/payment-callback',
+                supported_networks: ['visa', 'mastercard', 'mada'],
+                methods: ['creditcard'],
+                metadata: metadata,
+                on_initiating: function () {
+                    console.log('Payment initiated');
+
+                    // Validate customer details before payment
+                    const name = document.getElementById('customer_name').value;
+                    const phone = document.getElementById('customer_phone').value;
+
+                    if (!name || !phone) {
+                        alert('Please fill in your name and phone number before payment.');
+                        return false;
+                    }
+
+                    const orderType = document.getElementById('order-type').value;
+                    if (orderType === 'car_pickup') {
+                        const carType = document.getElementById('car_type').value;
+                        const carColor = document.getElementById('car_color').value;
+                        const carPlate = document.getElementById('car_plate').value;
+
+                        if (!carType || !carColor || !carPlate) {
+                            alert('Please fill in all car details.');
+                            return false;
+                        }
+                    }
+
+                    return true;
+                },
+                on_completed: function (payment) {
+                    console.log('Payment completed:', payment);
+                    sessionStorage.setItem('pending_payment', JSON.stringify(payment));
+                },
+                on_failure: function (error) {
+                    console.error('Payment failed:', error);
+                    alert('Payment failed: ' + (error.message || 'Unknown error'));
+                }
+            });
+
+            console.log('Moyasar.init() called successfully');
+        } catch (error) {
+            console.error('Error initializing Moyasar:', error);
+            document.querySelector('.mysr-form').innerHTML = '<div class="alert alert-danger">Failed to initialize payment: ' + error.message + '</div>';
+        }
+    }
+
+    // Promo Code Logic
+    document.getElementById('applyPromoBtn').addEventListener('click', async () => {
+        const code = document.getElementById('promoCode').value;
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const messageEl = document.getElementById('promoMessage');
+
+        if (!code) return;
+
+        try {
+            const res = await fetch('/api/validate-promo', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code, cart_total: total, cart_items: cart })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                messageEl.className = 'form-text mb-2 text-success';
+                messageEl.innerText = data.message;
+                document.getElementById('cart-discount').innerText = data.discount_amount;
+                document.getElementById('cart-total').innerText = data.new_total;
+
+                // Reinitialize Moyasar with new amount
+                document.querySelector('.mysr-form').innerHTML = '';
+                setTimeout(() => initializeMoyasarForm(), 200);
+            } else {
+                messageEl.className = 'form-text mb-2 text-danger';
+                messageEl.innerText = data.message;
+                document.getElementById('cart-discount').innerText = '0.00';
+                const resetTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                document.getElementById('cart-total').innerText = resetTotal.toFixed(2);
+            }
+        } catch (err) {
+            console.error(err);
+            messageEl.innerText = 'Error applying code';
+        }
+    });
+
+    // Initialize on page load
+    window.addEventListener('load', () => {
+        console.log('Page loaded');
+        console.log('Moyasar available:', typeof Moyasar !== 'undefined');
+
+        // Update cart display
+        Cart.updateUI();
+
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+        document.getElementById('cart-subtotal').innerText = total.toFixed(2);
+        document.getElementById('cart-total').innerText = total.toFixed(2);
+
+        // Initialize Moyasar with a delay to ensure everything is loaded
+        setTimeout(() => {
+            initializeMoyasarForm();
+        }, 1000);
+    });
+</script>

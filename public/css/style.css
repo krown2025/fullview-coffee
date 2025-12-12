@@ -1,0 +1,342 @@
+/* Font Face Declarations - All Weights */
+@font-face {
+    font-family: '29LT Zarid Slab';
+    src: url('/font/alfont_com_29LTZaridSlab-Light.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: '29LT Zarid Slab';
+    src: url('/font/alfont_com_29LTZaridSlab-Regular-2.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: '29LT Zarid Slab';
+    src: url('/font/alfont_com_29LTZaridSlab-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+}
+
+/* Brand Colors as per guidelines */
+:root {
+    /* Pantone P 124-5 C - Aqua */
+    --brand-aqua: #67c1be;
+
+    /* Pantone P 21-7 C - Gold */
+    --brand-gold: #c2801d;
+
+    /* Pantone P 179-15 C - Black */
+    --brand-black: #0f0f0f;
+
+    /* Cardboard beige for product cards */
+    --brand-beige: #e3dac9;
+
+    /* Brand Font */
+    --brand-font: '29LT Zarid Slab', serif;
+}
+
+/* Global Body Styling */
+body {
+    font-family: var(--brand-font), "Times New Roman", Times, serif;
+    color: var(--brand-black);
+    background-color: #ffffff;
+}
+
+/* Headings */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--brand-font);
+    font-weight: 700;
+    color: var(--brand-black);
+}
+
+/* Navbar Styling */
+.navbar-brand-custom {
+    background-color: var(--brand-aqua);
+    padding: 1rem 0;
+}
+
+.navbar-brand-custom .logo {
+    max-height: 100px;
+    width: auto;
+    padding: 10px;
+}
+
+.bg-brand-aqua {
+    background-color: var(--brand-aqua) !important;
+}
+
+/* Menu Page Headline Styling - Following Brand Guidelines */
+.menu-headline {
+    font-family: var(--brand-font);
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--brand-aqua);
+    font-size: 3rem;
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+}
+
+.menu-description {
+    font-family: var(--brand-font);
+    font-weight: 300;
+    color: var(--brand-black);
+    font-size: 1.1rem;
+    opacity: 0.8;
+    margin-bottom: 2rem;
+}
+
+/* Page Headers */
+.page-header {
+    font-family: var(--brand-font);
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--brand-gold);
+    font-size: 2.5rem;
+    letter-spacing: 1px;
+    margin-bottom: 2rem;
+}
+
+/* Category Headers */
+.category-header {
+    font-family: var(--brand-font);
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--brand-gold);
+    font-size: 2rem;
+    letter-spacing: 0.5px;
+    margin-top: 2rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 3px solid var(--brand-aqua);
+    padding-bottom: 0.5rem;
+}
+
+/* Category Icons */
+.category-icon {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+/* Category Navigation Pills */
+.nav-pills .nav-link {
+    font-family: var(--brand-font);
+    font-weight: 600;
+    color: var(--brand-black);
+    background-color: transparent;
+    border: 2px solid var(--brand-aqua);
+    margin-right: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.nav-pills .nav-link:hover {
+    background-color: var(--brand-aqua);
+    color: white;
+}
+
+.nav-pills .nav-link.active {
+    background-color: var(--brand-gold) !important;
+    color: white !important;
+    border-color: var(--brand-gold);
+}
+
+/* Product Card Styling */
+.product-card {
+    background-color: var(--brand-beige) !important;
+    color: var(--brand-black);
+    border-radius: 15px;
+    border: none;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    text-align: right;
+    overflow: hidden;
+}
+
+.product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 25px rgba(103, 193, 190, 0.3);
+}
+
+.product-card .card-title {
+    font-family: var(--brand-font);
+    font-weight: 700;
+    color: var(--brand-black);
+    font-size: 1.3rem;
+}
+
+.product-card .card-text {
+    font-family: var(--brand-font);
+    font-weight: 400;
+    color: var(--brand-black);
+    opacity: 0.8;
+}
+
+/* Card Headers */
+.card-header {
+    font-family: var(--brand-font);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.card-header.bg-primary {
+    background-color: var(--brand-aqua) !important;
+    border-color: var(--brand-aqua) !important;
+}
+
+.card-header.bg-info {
+    background-color: var(--brand-gold) !important;
+    border-color: var(--brand-gold) !important;
+}
+
+/* Price Badges */
+.price-badge {
+    font-family: var(--brand-font);
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.badge.bg-success {
+    background-color: var(--brand-aqua) !important;
+}
+
+.badge.bg-danger {
+    background-color: var(--brand-gold) !important;
+}
+
+/* Buttons */
+.btn {
+    font-family: var(--brand-font);
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-brand-gold {
+    background-color: var(--brand-gold);
+    color: white;
+    border: none;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0.75rem 1.5rem;
+}
+
+.btn-brand-gold:hover {
+    background-color: #a06815;
+    color: white;
+    transform: scale(1.05);
+}
+
+.btn-primary {
+    background-color: var(--brand-aqua);
+    border-color: var(--brand-aqua);
+}
+
+.btn-primary:hover {
+    background-color: #57b1ae;
+    border-color: #57b1ae;
+}
+
+.btn-success {
+    background-color: var(--brand-aqua);
+    border-color: var(--brand-aqua);
+}
+
+.btn-success:hover {
+    background-color: #57b1ae;
+    border-color: #57b1ae;
+}
+
+.btn-info {
+    background-color: var(--brand-gold);
+    border-color: var(--brand-gold);
+}
+
+.btn-info:hover {
+    background-color: #a06815;
+    border-color: #a06815;
+}
+
+.btn-warning {
+    background-color: var(--brand-gold);
+    border-color: var(--brand-gold);
+    color: white;
+}
+
+.btn-warning:hover {
+    background-color: #a06815;
+    border-color: #a06815;
+    color: white;
+}
+
+/* Cart Button */
+.cart-button {
+    font-family: var(--brand-font);
+    font-weight: 700;
+    background-color: var(--brand-gold);
+    border-color: var(--brand-gold);
+    padding: 0.75rem 2rem;
+    border-radius: 25px;
+    color: white;
+}
+
+.cart-button:hover {
+    background-color: #a06815;
+    transform: scale(1.05);
+    color: white;
+}
+
+/* Forms */
+.form-control,
+.form-select {
+    font-family: var(--brand-font);
+    border: 2px solid rgba(103, 193, 190, 0.3);
+    transition: border-color 0.3s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--brand-aqua);
+    box-shadow: 0 0 0 0.2rem rgba(103, 193, 190, 0.25);
+}
+
+/* Tables */
+.table {
+    font-family: var(--brand-font);
+}
+
+.table thead th {
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+    color: var(--brand-black);
+    border-bottom: 3px solid var(--brand-aqua);
+}
+
+/* Responsive Typography */
+@media (max-width: 768px) {
+    .menu-headline {
+        font-size: 2rem;
+    }
+
+    .page-header {
+        font-size: 2rem;
+    }
+
+    .menu-description {
+        font-size: 1rem;
+    }
+
+    .category-header {
+        font-size: 1.5rem;
+    }
+}

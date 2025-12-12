@@ -1,0 +1,54 @@
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center my-4">
+        <h1>Branch Reports</h1>
+        <a href="/branch/dashboard" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+
+    <div class="d-flex justify-content-end mb-4">
+        <div class="btn-group">
+            <a href="/branch/reports?range=daily"
+                class="btn btn-outline-primary <%= range === 'daily' ? 'active' : '' %>">Daily</a>
+            <a href="/branch/reports?range=weekly"
+                class="btn btn-outline-primary <%= range === 'weekly' ? 'active' : '' %>">Weekly</a>
+            <a href="/branch/reports?range=monthly"
+                class="btn btn-outline-primary <%= range === 'monthly' ? 'active' : '' %>">Monthly</a>
+            <a href="/branch/reports?range=yearly"
+                class="btn btn-outline-primary <%= range === 'yearly' ? 'active' : '' %>">Yearly</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Date / Period</th>
+                        <th>Orders Count</th>
+                        <th>Total Revenue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if(data.length===0) { %>
+                        <tr>
+                            <td colspan="3" class="text-center">No data available</td>
+                        </tr>
+                        <% } else { %>
+                            <% data.forEach(row=> { %>
+                                <tr>
+                                    <td>
+                                        <%= new Date(row.date).toLocaleDateString() %>
+                                    </td>
+                                    <td>
+                                        <%= row.count %>
+                                    </td>
+                                    <td>
+                                        <%= row.total %> SAR
+                                    </td>
+                                </tr>
+                                <% }) %>
+                                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

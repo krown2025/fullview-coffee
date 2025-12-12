@@ -1,0 +1,264 @@
+<div class="container">
+    <% function getCategoryIcon(name) { var lower=name.toLowerCase(); if ((lower.includes('قهوة') ||
+        lower.includes('coffee')) && (lower.includes('بارد') || lower.includes('cold') || lower.includes('ice') ||
+        lower.includes('مثلج'))) return 'fa-glass-water' ; if (lower.includes('قهوة') || (lower.includes('coffee') &&
+        !lower.includes('shop'))) return 'fa-mug-hot' ; if (lower.includes('شاي') || lower.includes('tea'))
+        return 'fa-mug-saucer' ; if (lower.includes('بارد') || lower.includes('cold') || lower.includes('ice') ||
+        lower.includes('مثلج')) return 'fa-glass-water' ; if (lower.includes('ماء') || lower.includes('water'))
+        return 'fa-bottle-water' ; if (lower.includes('سندو') || lower.includes('sandwich') || lower.includes('burger'))
+        return 'fa-burger' ; if (lower.includes('مخبوز') || lower.includes('bakery') || lower.includes('cake'))
+        return 'fa-bread-slice' ; if (lower.includes('بيتزا') || lower.includes('pizza')) return 'fa-pizza-slice' ; if
+        (lower.includes('مناقيش') || lower.includes('manakish')) return 'fa-plate-wheat' ; if (lower.includes('عصير') ||
+        lower.includes('juice')) return 'fa-glass-citrus' ; return 'fa-utensils' ; } %>
+        <!-- Menu Header with Brand Guidelines -->
+        <div class="text-center my-5">
+            <h1 class="menu-headline">
+                <%= branch.name %>
+            </h1>
+            <% if(branch.description) { %>
+                <p class="menu-description">
+                    <%= branch.description %>
+                </p>
+                <% } %>
+        </div>
+
+        <!-- Category Navigation -->
+        <div class="sticky-top bg-white py-3 mb-4" style="z-index: 1000; overflow-x: auto; white-space: nowrap;">
+            <nav class="nav nav-pills flex-nowrap justify-content-center">
+                <% categories.forEach((cat, index)=> { %>
+                    <a class="nav-link <%= index === 0 ? 'active' : '' %>" href="#cat-<%= cat.id %>"
+                        onclick="setActive(this)">
+                        <% if (cat.image) { %>
+                            <img src="<%= cat.image %>" alt="<%= cat.name %>" class="category-icon me-2"
+                                style="width: 24px; height: 24px; object-fit: contain;">
+                            <% } else { %>
+                                <i class="fas <%= getCategoryIcon(cat.name) %> category-icon me-2"></i>
+                                <% } %>
+                                    <%= cat.name %>
+                    </a>
+                    <% }) %>
+            </nav>
+        </div>
+
+        <!-- Products by Category -->
+        <% categories.forEach(cat=> { %>
+            <h2 class="category-header" id="cat-<%= cat.id %>">
+                <% if (cat.image) { %>
+                    <img src="<%= cat.image %>" alt="<%= cat.name %>" class="me-2"
+                        style="width: 32px; height: 32px; object-fit: contain;">
+                    <% } else { %>
+                        <i class="fas <%= getCategoryIcon(cat.name) %> me-2"></i>
+                        <% } %>
+                            <%= cat.name %>
+            </h2>
+            <div class="row mb-5">
+                <% products.filter(p=> p.category_id === cat.id).forEach(prod => { %>
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 shadow product-card">
+                            <% if(prod.image) { %>
+                                <img src="<%= prod.image %>" class="card-img-top" alt="<%= prod.name %>"
+                                    style="height: 250px; object-fit: cover;">
+                                <% } %>
+                                    <div class="card-body d-flex flex-column">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h5 class="card-title mb-0">
+                                                <%= prod.name %>
+                                            </h5>
+                                            <div class="text-end">
+                                                <% if(prod.has_discount) { %>
+                                                    <div>
+                                                        <span
+                                                            class="text-decoration-line-through text-muted small d-block">
+                                                            <%= prod.original_price %>
+                                                                <%= __('sar') %>
+                                                        </span>
+                                                        <span class="badge price-badge bg-danger">
+                                                            <%= prod.discounted_price %>
+                                                                <%= __('sar') %>
+                                                        </span>
+                                                    </div>
+                                                    <% } else { %>
+                                                        <span class="badge price-badge bg-success">
+                                                            <%= prod.base_price %>
+                                                                <%= __('sar') %>
+                                                        </span>
+                                                        <% } %>
+                                            </div>
+                                        </div>
+                                        <p class="card-text small flex-grow-1">
+                                            <%= prod.description %>
+                                        </p>
+                                        <% if (typeof isBranchSubdomain !=='undefined' && isBranchSubdomain) { %>
+                                            <button class="btn btn-brand-gold w-100 mt-auto"
+                                                onclick='openProductModal(<%- JSON.stringify(prod) %>)'>
+                                                <i class="fas fa-plus-circle me-2"></i>
+                                                <%= __('add_to_cart') %>
+                                            </button>
+                                            <% } %>
+                                    </div>
+                        </div>
+                    </div>
+                    <% }) %>
+            </div>
+            <% }) %>
+</div>
+
+<script src="/js/cart.js"></script>
+
+<!-- Product Modal -->
+<div class="modal fade" id="productModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalProductName">Product Name</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="modalProductDesc" class="text-muted"></p>
+                <h4 id="modalBasePrice" class="text-primary mb-3"></h4>
+
+                <form id="productOptionsForm">
+                    <div id="modalOptionsContainer"></div>
+                </form>
+            </div>
+            <div class="modal-footer d-flex justify-content-between">
+                <h4 id="modalTotalPrice">0.00 SAR</h4>
+                <% if (typeof isBranchSubdomain !=='undefined' && isBranchSubdomain) { %>
+                    <button type="button" class="btn btn-brand-gold" id="addToCartBtn">
+                        <i class="fas fa-cart-plus me-2"></i>
+                        <%= __('add_to_cart') %>
+                    </button>
+                    <% } %>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function setActive(element) {
+        document.querySelectorAll('.nav-link').forEach(el => {
+            el.classList.remove('active');
+        });
+        element.classList.add('active');
+    }
+
+    let currentProduct = null;
+    let currentOptions = [];
+
+    function openProductModal(product) {
+        console.log('Product Data:', product);
+        currentProduct = product;
+        currentOptions = [];
+
+        const basePrice = product.has_discount ? product.discounted_price : product.base_price;
+        currentProduct.effective_price = basePrice;
+
+        document.getElementById('modalProductName').innerText = product.name;
+        document.getElementById('modalProductDesc').innerText = product.description || '';
+
+        let priceHtml = basePrice + ' <%= __('sar') %>';
+        if (product.has_discount) {
+            priceHtml = `<span class="text-decoration-line-through text-muted me-2">${product.original_price} <%= __('sar') %></span> <span class="text-danger fw-bold">${basePrice} <%= __('sar') %></span>`;
+        }
+        document.getElementById('modalBasePrice').innerHTML = priceHtml;
+
+        const container = document.getElementById('modalOptionsContainer');
+        container.innerHTML = '';
+
+        if (product.options && product.options.length > 0) {
+            product.options.forEach(opt => {
+                let choices = [];
+                try { choices = (typeof opt.choices === 'string') ? JSON.parse(opt.choices) : opt.choices; } catch (e) { }
+
+                if (!choices || choices.length === 0) return;
+
+                const div = document.createElement('div');
+                div.className = 'mb-3';
+                div.innerHTML = `<h5>${opt.name} ${opt.is_required ? '<span class="text-danger">*</span>' : ''}</h5>`;
+
+                if (opt.type === 'size') {
+                    choices.forEach((c, idx) => {
+                        const checked = (opt.is_required && idx === 0) ? 'checked' : '';
+                        div.innerHTML += `
+                        <div class="form-check">
+                            <input class="form-check-input option-input" type="radio" name="opt_${opt.id}" 
+                                id="opt_${opt.id}_${idx}" value="${c.name}" data-price="${c.price}" ${checked} 
+                                onchange="updateTotal()">
+                            <label class="form-check-label" for="opt_${opt.id}_${idx}">
+                                ${c.name} (+${c.price} <%= __('sar') %>)
+                            </label>
+                        </div>
+                    `;
+                    });
+                } else {
+                    choices.forEach((c, idx) => {
+                        div.innerHTML += `
+                        <div class="form-check">
+                            <input class="form-check-input option-input" type="checkbox" name="opt_${opt.id}" 
+                                id="opt_${opt.id}_${idx}" value="${c.name}" data-price="${c.price}" 
+                                onchange="updateTotal()">
+                            <label class="form-check-label" for="opt_${opt.id}_${idx}">
+                                ${c.name} (+${c.price} <%= __('sar') %>)
+                            </label>
+                        </div>
+                    `;
+                    });
+                }
+                container.appendChild(div);
+            });
+        } else {
+            container.innerHTML = '<p>No options available.</p>';
+        }
+
+        updateTotal();
+        const modal = new bootstrap.Modal(document.getElementById('productModal'));
+        modal.show();
+    }
+
+    function updateTotal() {
+        let total = parseFloat(currentProduct.effective_price || currentProduct.base_price);
+        const inputs = document.querySelectorAll('.option-input:checked');
+
+        inputs.forEach(input => {
+            total += parseFloat(input.dataset.price || 0);
+        });
+
+        document.getElementById('modalTotalPrice').innerText = total.toFixed(2) + ' <%= __('sar') %>';
+    }
+
+    document.getElementById('addToCartBtn').addEventListener('click', () => {
+        const inputs = document.querySelectorAll('.option-input:checked');
+        const selectedOptions = [];
+        let isValid = true;
+
+        if (currentProduct.options) {
+            currentProduct.options.forEach(opt => {
+                let choices = [];
+                try { choices = (typeof opt.choices === 'string') ? JSON.parse(opt.choices) : opt.choices; } catch (e) { }
+
+                if (opt.is_required && choices && choices.length > 0) {
+                    const checked = document.querySelector(`input[name="opt_${opt.id}"]:checked`);
+                    if (!checked) isValid = false;
+                }
+            });
+        }
+
+        if (!isValid) {
+            alert('Please select all required options.');
+            return;
+        }
+
+        inputs.forEach(input => {
+            selectedOptions.push({
+                name: input.value,
+                price: parseFloat(input.dataset.price)
+            });
+        });
+
+        Cart.add(currentProduct, selectedOptions);
+
+        const modalEl = document.getElementById('productModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        modal.hide();
+    });
+</script>

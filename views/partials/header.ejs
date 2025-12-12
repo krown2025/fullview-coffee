@@ -1,0 +1,28 @@
+<nav class="navbar navbar-expand-lg bg-brand-aqua">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">
+            <img src="/uploads/logo-transparent.png" alt="Dufat 89" class="d-inline-block align-text-top"
+                style="max-height: 100px; padding: 5px;">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <!-- MENU text removed as requested -->
+                <% if (typeof isBranchSubdomain !=='undefined' && isBranchSubdomain) { %>
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="/checkout">
+                            <i class="fas fa-shopping-cart fa-lg"></i>
+                            <span id="cart-count"
+                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                0
+                            </span>
+                        </a>
+                    </li>
+                    <% } %>
+            </ul>
+        </div>
+    </div>
+</nav>

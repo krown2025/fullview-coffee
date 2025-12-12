@@ -1,0 +1,161 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Edit Product</h1>
+    <a href="/branch/dashboard" class="btn btn-secondary">Back to Dashboard</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form action="/branch/product/edit/<%= product.id %>" method="POST" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label class="form-label">Category</label>
+                <select name="category_id" class="form-select" required>
+                    <% categories.forEach(cat=> { %>
+                        <option value="<%= cat.id %>" <%=product.category_id==cat.id ? 'selected' : '' %>><%= cat.name
+                                %>
+                        </option>
+                        <% }) %>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Product Name</label>
+                <input type="text" name="name" class="form-control" value="<%= product.name %>" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Price</label>
+                <input type="number" step="0.01" name="base_price" class="form-control"
+                    value="<%= product.base_price %>" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Description</label>
+                <textarea name="description" class="form-control"><%= product.description %></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Current Image</label><br>
+                <% if(product.image) { %>
+                    <img src="<%= product.image %>" alt="Product Image" style="max-width: 100px;">
+                    <% } else { %>
+                        <p>No image</p>
+                        <% } %>
+                            <input type="hidden" name="current_image" value="<%= product.image %>">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Update Image</label>
+                <input type="file" name="image" class="form-control">
+            </div>
+            <button type="submit" class="btn btn-primary">Update Product</button>
+        </form>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h3>Product Options</h3>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <% if(options && options.length> 0) { %>
+                <% options.forEach(opt=> { %>
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <strong>
+                                    <%= opt.name %> <span class="badge bg-info">
+                                            <%= opt.type %>
+                                        </span>
+                                </strong>
+                                <form action="/branch/product/option/delete/<%= opt.id %>" method="POST"
+                                    onsubmit="return confirm('Delete this option group?');" style="margin:0;">
+                                    <input type="hidden" name="product_id" value="<%= product.id %>">
+                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                </form>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-1"><strong>Required:</strong>
+                                    <%= opt.is_required ? 'Yes' : 'No' %>
+                                </p>
+                                <ul class="list-group list-group-flush">
+                                    <% let choices=[]; try { choices=(typeof opt.choices==='string' ) ?
+                                        JSON.parse(opt.choices) : opt.choices; } catch(e) {} if(choices &&
+                                        Array.isArray(choices)) { choices.forEach(c=> { %>
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span>
+                                                <%= c.name %>
+                                            </span>
+                                            <span>+<%= c.price %></span>
+                                        </li>
+                                        <% }); } %>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <% }) %>
+                        <% } else { %>
+                            <p class="text-muted">No options configured for this product.</p>
+                            <% } %>
+        </div>
+
+        <hr>
+
+        <h4>Add New Option Group</h4>
+        <form action="/branch/product/option/add/<%= product.id %>" method="POST">
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">Group Name (e.g. Size)</label>
+                    <input type="text" name="name" class="form-control" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Type</label>
+                    <select name="type" class="form-select">
+                        <option value="size">Size</option>
+                        <option value="addon">Add-on</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Required?</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="is_required" value="1">
+                        <label class="form-check-label">Yes</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Choices</label>
+                <div id="choices-container">
+                    <div class="row mb-2">
+                        <div class="col-5">
+                            <input type="text" name="choice_name[]" class="form-control"
+                                placeholder="Choice Name (e.g. Small)" required>
+                        </div>
+                        <div class="col-3">
+                            <input type="number" step="0.01" name="choice_price[]" class="form-control"
+                                placeholder="Price (+)" value="0">
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-secondary" onclick="addChoiceRow()">+ Add Choice</button>
+            </div>
+
+            <button type="submit" class="btn btn-success">Save Option Group</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function addChoiceRow() {
+        const div = document.createElement('div');
+        div.className = 'row mb-2';
+        div.innerHTML = `
+        <div class="col-5">
+            <input type="text" name="choice_name[]" class="form-control" placeholder="Choice Name">
+        </div>
+        <div class="col-3">
+            <input type="number" step="0.01" name="choice_price[]" class="form-control" placeholder="Price (+)" value="0">
+        </div>
+        <div class="col-2">
+            <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.parentElement.remove()">X</button>
+        </div>
+    `;
+        document.getElementById('choices-container').appendChild(div);
+    }
+</script>

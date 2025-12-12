@@ -1,0 +1,207 @@
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center my-3">
+        <h1>Kitchen Display System</h1>
+        <div>
+            <a href="/admin/logout" class="btn btn-danger">Logout</a>
+        </div>
+    </div>
+
+    <div class="row" id="orders-container">
+        <% orders.forEach(order=> { %>
+            <div class="col-md-3 mb-3" id="order-<%= order.id %>">
+                <div class="card <%= order.status === 'new' ? 'border-danger shadow-lg' : 'border-warning' %>">
+                    <div
+                        class="card-header d-flex justify-content-between <%= order.status === 'new' ? 'bg-danger text-white' : 'bg-warning text-dark' %>">
+                        <strong>#<%= order.id %> - <%= order.customer_name %></strong>
+                        <span class="badge bg-light text-dark">
+                            <%= order.status %>
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-1"><strong>Type:</strong>
+                            <%= order.order_type %>
+                        </p>
+
+                        <% if(order.table_number) { %>
+                            <p class="mb-1"><strong>Table:</strong>
+                                <%= order.table_number %>
+                            </p>
+                            <% } %>
+
+                                <% if(order.car_type) { %>
+                                    <div class="alert alert-secondary p-2 mb-2">
+                                        <small>
+                                            <strong>Car:</strong>
+                                            <%= order.car_type %><br>
+                                                <strong>Color:</strong>
+                                                <%= order.car_color %><br>
+                                                    <strong>Plate:</strong>
+                                                    <%= order.car_plate %>
+                                        </small>
+                                    </div>
+                                    <% } %>
+
+                                        <hr>
+                                        <ul class="list-unstyled">
+                                            <% if (order.items && Array.isArray(order.items)) { %>
+                                                <% order.items.forEach(item=> { %>
+                                                    <li>
+                                                        <strong>
+                                                            <%= item.quantity %>x <%= item.name %>
+                                                        </strong>
+                                                        <% let opts=item.options; try { if(typeof opts==='string' )
+                                                            opts=JSON.parse(opts); } catch(e){} if(opts &&
+                                                            Array.isArray(opts) && opts.length> 0) { %>
+                                                            <ul class="small text-muted mb-0 ps-3"
+                                                                style="list-style-type: circle;">
+                                                                <% opts.forEach(o=> { %>
+                                                                    <li>
+                                                                        <%= o.name %>
+                                                                    </li>
+                                                                    <% }) %>
+                                                            </ul>
+                                                            <% } %>
+                                                    </li>
+                                                    <% }) %>
+                                                        <% } else { %>
+                                                            <li>No items</li>
+                                                            <% } %>
+                                        </ul>
+                                        <hr>
+                                        <% if(order.status==='new' ) { %>
+                                            <div class="input-group mb-2">
+                                                <input type="number" class="form-control" placeholder="Mins"
+                                                    id="time-<%= order.id %>" value="15">
+                                                <button class="btn btn-primary"
+                                                    onclick="acceptOrder(<%= order.id %>)">Accept</button>
+                                            </div>
+                                            <% } else { %>
+                                                <button class="btn btn-success w-100"
+                                                    onclick="completeOrder(<%= order.id %>)">Ready</button>
+                                                <% } %>
+                    </div>
+                </div>
+            </div>
+            <% }) %>
+    </div>
+</div>
+
+<!-- New Order Modal -->
+<div class="modal fade" id="newOrderModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-danger text-white">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">New Order Received!</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <h3>Order #<span id="modal-order-id"></span></h3>
+                <p id="modal-customer-name" class="fs-4"></p>
+                <p id="modal-amount" class="fs-5"></p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center">
+                <button type="button" class="btn btn-light btn-lg" data-bs-dismiss="modal"
+                    onclick="location.reload()">View Order</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Start Shift Overlay -->
+<div id="start-shift-overlay"
+    class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 d-flex justify-content-center align-items-center"
+    style="z-index: 2000;">
+    <div class="text-center">
+        <h1 class="text-white mb-4">Ready to start?</h1>
+        <button id="start-shift-btn" class="btn btn-success btn-lg px-5 py-3 fs-3 shadow-lg">
+            Start Shift & Enable Audio
+        </button>
+    </div>
+</div>
+
+<audio id="notification-sound" src="/audio/beep.mp3" preload="auto"></audio>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+    const branchId = '<%= branchId %>';
+    const audio = document.getElementById('notification-sound');
+
+    // Check if shift already started
+    if (sessionStorage.getItem('shiftStarted') === 'true') {
+        const overlay = document.getElementById('start-shift-overlay');
+        overlay.classList.remove('d-flex');
+        overlay.classList.add('d-none');
+    }
+
+    // Start Shift & Enable Audio
+    document.getElementById('start-shift-btn').addEventListener('click', function () {
+        const overlay = document.getElementById('start-shift-overlay');
+
+        audio.play().then(() => {
+            audio.pause();
+            audio.currentTime = 0;
+            // Hide overlay
+            overlay.classList.remove('d-flex');
+            overlay.classList.add('d-none');
+            sessionStorage.setItem('shiftStarted', 'true');
+        }).catch(e => {
+            console.error('Audio error:', e);
+            // Even if audio fails, hide overlay so they can work
+            overlay.classList.remove('d-flex');
+            overlay.classList.add('d-none');
+            sessionStorage.setItem('shiftStarted', 'true');
+        });
+    });
+
+    if (branchId && branchId !== 'undefined') {
+        socket.emit('joinBranch', branchId);
+    }
+
+    socket.on('new_order', (data) => {
+        console.log('New Order:', data);
+
+        // Play sound
+        audio.currentTime = 0;
+        audio.play().catch(e => console.log('Audio play failed', e));
+
+        // Show Modal
+        document.getElementById('modal-order-id').innerText = data.orderId;
+        document.getElementById('modal-customer-name').innerText = data.customer_name;
+        document.getElementById('modal-amount').innerText = data.total_amount + ' SAR';
+
+        const modal = new bootstrap.Modal(document.getElementById('newOrderModal'));
+        modal.show();
+
+        // Optional: Auto-reload after a delay if modal isn't closed
+        setTimeout(() => location.reload(), 5000);
+    });
+
+    async function acceptOrder(id) {
+        const time = document.getElementById('time-' + id).value || 15;
+        try {
+            await fetch('/kds/update-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId: id, status: 'preparing', prep_time: time })
+            });
+            location.reload();
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    async function completeOrder(id) {
+        try {
+            await fetch('/kds/update-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId: id, status: 'ready' })
+            });
+            const el = document.getElementById('order-' + id);
+            if (el) el.remove();
+        } catch (err) {
+            console.error(err);
+        }
+    }
+</script>
