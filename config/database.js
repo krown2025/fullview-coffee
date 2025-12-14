@@ -13,7 +13,16 @@ if (DB_TYPE === 'postgres') {
         user: process.env.DB_USER,
         password: process.env.DB_PASS,
         database: process.env.DB_NAME,
-        port: process.env.DB_PORT || 5432,
+        database: process.env.DB_NAME,
+        port: (() => {
+            const rawPort = process.env.DB_PORT || process.env.PGPORT;
+            const parsed = parseInt(rawPort, 10);
+            if (isNaN(parsed)) {
+                console.log(`[DB Config] Invalid/Missing DB_PORT ('${rawPort}'), defaulting to 5432`);
+                return 5432;
+            }
+            return parsed;
+        })(),
         ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
     });
 
