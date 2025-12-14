@@ -1,17 +1,98 @@
-const mysql = require('mysql2');
 require('dotenv').config();
 
-const pool = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_NAME,
-    port: process.env.DB_PORT || 3306,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-});
+const DB_TYPE = process.env.DB_TYPE || 'mysql'; // 'mysql' or 'postgres'
 
-const promisePool = pool.promise();
+let db;
 
-module.exports = promisePool;
+if (DB_TYPE === 'postgres') {
+    // PostgreSQL Configuration
+    const { Pool } = require('pg');
+
+    const pool = new Pool({
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASS,
+        database: process.env.DB_NAME,
+        port: process.env.DB_PORT || 5432,
+        ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
+    });
+
+    // Wrapper to make PostgreSQL compatible with MySQL-style queries
+    db = {
+        query: async (sql, params) => {
+            // Convert MySQL ? placeholders to PostgreSQL $1, $2, etc.
+            let pgSql = sql;
+            let pgParams = params || [];
+
+            if (params && params.length > 0) {
+                let paramIndex = 1;
+                pgSql = sql.replace(/\?/g, () => `$${paramIndex++}`);
+            }
+
+            const result = await pool.query(pgSql, pgParams);
+
+            // Make result format compatible with MySQL
+            if (result.command === 'INSERT') {
+                return [{ insertId: result.rows[0]?.id, affectedRows: result.rowCount }];
+            } else if (result.command === 'UPDATE' || result.command === 'DELETE') {
+                return [{ affectedRows: result.rowCount }];
+            } else {
+                return [result.rows];
+            }
+        },
+        getConnection: async () => {
+            const client = await pool.connect();
+            return {
+                query: async (sql, params) => {
+                    let pgSql = sql;
+                    let pgParams = params || [];
+
+                    if (params && params.length > 0) {
+                        let paramIndex = 1;
+                        pgSql = sql.replace(/\?/g, () => `$${paramIndex++}`);
+                    }
+
+                    const result = await client.query(pgSql, pgParams);
+
+                    if (result.command === 'INSERT') {
+                        return [{ insertId: result.rows[0]?.id, affectedRows: result.rowCount }];
+                    } else if (result.command === 'UPDATE' || result.command === 'DELETE') {
+                        return [{ affectedRows: result.rowCount }];
+                    } else {
+                        return [result.rows];
+                    }
+                },
+                beginTransaction: async () => {
+                    await client.query('BEGIN');
+                },
+                commit: async () => {
+                    await client.query('COMMIT');
+                },
+                rollback: async () => {
+                    await client.query('ROLLBACK');
+                },
+                release: () => {
+                    client.release();
+                }
+            };
+        }
+    };
+} else {
+    // MySQL Configuration
+    const mysql = require('mysql2');
+
+    const pool = mysql.createPool({
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASS,
+        database: process.env.DB_NAME,
+        port: process.env.DB_PORT || 3306,
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0
+    });
+
+    db = pool.promise();
+}
+
+module.exports = db;

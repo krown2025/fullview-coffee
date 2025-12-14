@@ -79,6 +79,11 @@ app.use((req, res, next) => {
 // Subdomain Middleware
 app.use(subdomainMiddleware);
 
+// Health check endpoint for Railway
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
 // Routes
 app.use('/admin', require('./routes/admin'));
 app.use('/branch', require('./routes/branch'));
