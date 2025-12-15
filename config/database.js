@@ -8,31 +8,41 @@ if (DB_TYPE === 'postgres') {
     // PostgreSQL Configuration
     const { Pool } = require('pg');
 
-    const dbConfig = {
-        host: process.env.DB_HOST,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASS,
-        database: process.env.DB_NAME,
-        port: (() => {
-            const rawPort = process.env.DB_PORT || process.env.PGPORT;
-            const parsed = parseInt(rawPort, 10);
-            if (isNaN(parsed)) {
-                console.log(`[DB Config] Invalid/Missing DB_PORT ('${rawPort}'), defaulting to 5432`);
-                return 5432;
-            }
-            return parsed;
-        })(),
-        ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
-    };
+    let dbConfig;
 
-    console.log('[DB Config] Attempting connection with:', {
-        host: dbConfig.host,
-        user: dbConfig.user,
-        database: dbConfig.database,
-        port: dbConfig.port,
-        ssl: dbConfig.ssl,
-        passwordLength: dbConfig.password ? dbConfig.password.length : 0
-    });
+    if (process.env.DATABASE_URL) {
+        dbConfig = {
+            connectionString: process.env.DATABASE_URL,
+            ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
+        };
+        console.log('[DB Config] Using DATABASE_URL connection strategy');
+    } else {
+        dbConfig = {
+            host: process.env.DB_HOST,
+            user: process.env.DB_USER,
+            password: process.env.DB_PASS,
+            database: process.env.DB_NAME,
+            port: (() => {
+                const rawPort = process.env.DB_PORT || process.env.PGPORT;
+                const parsed = parseInt(rawPort, 10);
+                if (isNaN(parsed)) {
+                    console.log(`[DB Config] Invalid/Missing DB_PORT ('${rawPort}'), defaulting to 5432`);
+                    return 5432;
+                }
+                return parsed;
+            })(),
+            ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
+        };
+
+        console.log('[DB Config] Attempting connection with:', {
+            host: dbConfig.host,
+            user: dbConfig.user,
+            database: dbConfig.database,
+            port: dbConfig.port,
+            ssl: dbConfig.ssl,
+            passwordLength: dbConfig.password ? dbConfig.password.length : 0
+        });
+    }
 
     const pool = new Pool(dbConfig);
 
